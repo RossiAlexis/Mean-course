@@ -11,13 +11,16 @@ import { PostService } from '../service/post.service';
 
 export class PostListComponent implements OnDestroy {
 
-  posts:Post[] = []
+  posts:Post[] = [];
+  isLoading = false;
   private postsSub: Subscription;
 
   constructor(private postService: PostService) {
+    this.isLoading = true;
     this.postService.getPosts();
     this.postsSub = this.postService.getPostUpdateListener()
-    .subscribe((posts: Post[])=> {
+    .subscribe((posts: Post[]) => {
+      this.isLoading = false;
       this.posts = posts;
     })
    }
