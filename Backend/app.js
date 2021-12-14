@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const app = express();
 const bodyParser = require('body-parser')
@@ -14,6 +15,7 @@ mongoose.connect("mongodb+srv://Alex:FOeGkWwJq7DswMh6@cluster0.73kqi.mongodb.net
     }))
 
 
+app.use('/images',express.static('images'));
 app.use(bodyParser.json());
 
 app.use((req, res, next)=> {

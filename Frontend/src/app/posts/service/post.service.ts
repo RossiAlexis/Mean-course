@@ -25,7 +25,8 @@ export class PostService {
           return {
             title: post.title,
             description: post.description,
-            id: post._id
+            id: post._id,
+            image: post.image
           } as Post
         })
       })
@@ -41,10 +42,18 @@ export class PostService {
   }
 
   addPost(post: Post) {
-    this.httpClient.post<{message: string, postId: string}>('http://localhost:3000/api/posts', post).subscribe((responseData) => {
+    const postData = new FormData();
+    postData.append('title', post.title);
+    postData.append('description', post.description);
+    postData.append('image', post.image as File, post.title);
+    this.httpClient.post<{message: string, post: Post}>('http://localhost:3000/api/posts', postData).subscribe((responseData) => {
       console.log(responseData.message);
-      const id = responseData.postId;
-      post.id = id;
+      const post: Post = {
+        id: responseData.post.id,
+        title: responseData.post.title,
+        description: responseData.post.description,
+        image: responseData.post.image
+      }
       this.posts.push(post);
       this.postsUpdated.next([...this.posts]);
       this.router.navigate(['/']);
@@ -62,10 +71,25 @@ export class PostService {
   }
 
   updatePost(post: Post) {
+
+    let postData: Post | FormData;
+    if (typeof(post.image) === 'object') {
+      postData = new FormData();
+      postData.append('id', post.id);
+      postData.append('title', post.title);
+      postData.append('description', post.description);
+      postData.append('image', post.image as File, post.title);
+    } else {
+      postData = {...post}
+    }
       this.httpClient.put(`http://localhost:3000/api/posts/${post.id}`, post)
       .subscribe((response) => {
         const updatedPosts = [...this.posts];
         const oldPostIndex = updatedPosts.findIndex(p => p.id === post.id);
+        const updatedPost:Post  = {
+          ...post,
+          // image: response.image
+        }
         updatedPosts[oldPostIndex] = post;
         this.posts = updatedPosts;
         this.postsUpdated.next([...this.posts]);
@@ -74,6 +98,6 @@ export class PostService {
 
   }
   getPost(id:string) {
-    return this.httpClient.get<{_id: string, title: string, description: string}>(`http://localhost:3000/api/posts/${id}`);
+    return this.httpClient.get<{_id: string, title: string, description: string, image: string}>(`http://localhost:3000/api/posts/${id}`);
   }
 }

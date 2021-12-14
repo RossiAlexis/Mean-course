@@ -43,10 +43,11 @@ export class PostCreateComponent implements OnInit {
         this.isLoading = true;
         this.postService.getPost(this.postId).subscribe((postData) => {
           this.isLoading = false;
-          this.post = {id: postData._id, title: postData.title, description: postData.description};
+          this.post = {id: postData._id, title: postData.title, description: postData.description, image:postData.image};
           this.form.setValue({
             title: this.post.title,
-            description: this.post.description
+            description: this.post.description,
+            image: this.post.image
           })
         });
       } else {
@@ -65,14 +66,16 @@ export class PostCreateComponent implements OnInit {
       const post: Post = {
         id: '',
         title: this.form.value.title,
-        description: this.form.value.description
+        description: this.form.value.description,
+        image: this.form.value.image as File
       }
       this.postService.addPost(post);
     } else {
       const post: Post = {
         id:this.postId!,
         title: this.form.value.title,
-        description: this.form.value.description
+        description: this.form.value.description,
+        image: this.form.value.image
       }
       this.postService.updatePost(post);
     }
