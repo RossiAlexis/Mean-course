@@ -1,31 +1,27 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Subject } from "rxjs";
-import { map } from "rxjs/operators";
+import { Observable, Subject } from "rxjs";
+import { map, switchMap } from "rxjs/operators";
 import { Router } from "@angular/router";
 
 import { environment } from "../../environments/environment";
 import { Post } from "./post.model";
+import { PaginatedList } from "./models/post.model";
 
 const BACKEND_URL = environment.apiUrl + "/posts/";
 
 @Injectable({ providedIn: "root" })
 export class PostsService {
   private posts: Post[] = [];
-  private postsUpdated = new Subject<{ posts: Post[]; postCount: number }>();
-
+  public postsUpdated = new Subject<PaginatedList<Post>>();
   constructor(private http: HttpClient, private router: Router) {}
 
-  getPosts(postsPerPage: number, currentPage: number) {
+  getPosts(postsPerPage: number, currentPage: number): Observable<PaginatedList<Post>> {
     const queryParams = `?pagesize=${postsPerPage}&page=${currentPage}`;
-    this.http
-      .get<{ message: string; posts: any; maxPosts: number }>(
-        BACKEND_URL + queryParams
-      )
-      .pipe(
+    return this.http.get<PaginatedList<Post>>(BACKEND_URL + queryParams).pipe(
         map(postData => {
           return {
-            posts: postData.posts.map((post: any) => {
+            items: postData.items.map((post: any) => {
               return {
                 title: post.title,
                 content: post.content,
@@ -34,21 +30,10 @@ export class PostsService {
                 creator: post.creator
               };
             }),
-            maxPosts: postData.maxPosts
-          };
+            totalItems: postData.totalItems
+          } as PaginatedList<Post>;
         })
-      )
-      .subscribe(transformedPostData => {
-        this.posts = transformedPostData.posts;
-        this.postsUpdated.next({
-          posts: [...this.posts],
-          postCount: transformedPostData.maxPosts
-        });
-      });
-  }
-
-  getPostUpdateListener() {
-    return this.postsUpdated.asObservable();
+      );
   }
 
   getPost(id: string | null) {
@@ -100,7 +85,7 @@ export class PostsService {
       });
   }
 
-  deletePost(postId: string) {
+  deletePost(postId: string):Observable<any> {
     return this.http.delete(BACKEND_URL + postId);
   }
 }

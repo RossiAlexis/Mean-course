@@ -71,8 +71,8 @@ exports.getPosts = (req, res, next) => {
     .then(count => {
       res.status(200).json({
         message: "Posts fetched successfully!",
-        posts: fetchedPosts,
-        maxPosts: count
+        items: fetchedPosts,
+        totalItems: count
       });
     })
     .catch(error => {
